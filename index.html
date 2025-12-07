@@ -1115,11 +1115,96 @@
             document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Form Submission Loading State
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending Request...';
-            submitBtn.disabled = true;
+  document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contactForm');
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // STOP default redirect
+                
+                // Show loading state
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+                submitBtn.disabled = true;
+                
+                // Prepare form data
+                const formData = new FormData(contactForm);
+                const data = Object.fromEntries(formData);
+                
+                // Send via AJAX
+                fetch('https://formsubmit.co/ajax/ssbsasemaker@gmail.com', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success === "true") {
+                        showFormMessage('success', '✅ Success! We will contact you within 2 hours.');
+                        contactForm.reset();
+                        
+                        // Optional: Scroll to top of form
+                        document.getElementById('contact').scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                        });
+                    } else {
+                        showFormMessage('error', '❌ Error! Please try again or use WhatsApp.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Form Error:', error);
+                    showFormMessage('error', '❌ Network error. Please contact us via WhatsApp.');
+                })
+                .finally(() => {
+                    // Reset button
+                    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Request';
+                    submitBtn.disabled = false;
+                });
+            });
+            
+            function showFormMessage(type, message) {
+                // Remove existing messages
+                const existingMsg = contactForm.querySelector('.form-message');
+                if (existingMsg) existingMsg.remove();
+                
+                // Create message element
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `form-message ${type}`;
+                messageDiv.style.cssText = `
+                    margin-top: 20px;
+                    padding: 15px;
+                    border-radius: 10px;
+                    font-weight: 500;
+                    text-align: center;
+                    animation: fadeIn 0.5s ease;
+                `;
+                messageDiv.textContent = message;
+                
+                // Style based on type
+                if (type === 'success') {
+                    messageDiv.style.background = 'rgba(61, 220, 132, 0.2)';
+                    messageDiv.style.color = 'var(--primary)';
+                    messageDiv.style.border = '1px solid var(--primary)';
+                } else {
+                    messageDiv.style.background = 'rgba(239, 68, 68, 0.2)';
+                    messageDiv.style.color = '#ef4444';
+                    messageDiv.style.border = '1px solid #ef4444';
+                }
+                
+                // Add to form
+                contactForm.appendChild(messageDiv);
+                
+                // Auto-remove after 8 seconds
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.style.animation = 'fadeOut 0.5s ease';
+                        setTimeout(() => messageDiv.remove(), 500);
+                    }
+                }, 8000);
+            }
         });
 
         // Add subtle parallax to hero
@@ -1140,4 +1225,5 @@
     </script>
 </body>
 </html>
+
 
